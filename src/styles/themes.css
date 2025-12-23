@@ -1,0 +1,11 @@
+:root {
+    --bg: #030712;
+    --primary: #22c55e;
+    --accent: #16a34a;
+}
+
+[data-author='ellen'] {
+    --bg: #0935fd;
+    --primary: #ec4899;
+    --accent: #db2777;
+}
