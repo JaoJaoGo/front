@@ -1,13 +1,22 @@
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-    const [ email, setEmail ] = useState('');
-    const [ password, setPassword ] = useState('');
+    const { signIn, loading, error } = useAuth();
+    const navigate = useNavigate();
 
-    function handleSubmit(e) {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    async function handleSubmit(e) {
         e.preventDefault();
 
-        // Chamar service de login aqui (não deveriamos usar hooks?)
+        await signIn({ email, password });
+        
+        if (error === null) {
+            navigate('/');
+        }
     }
 
     return (
@@ -26,6 +35,7 @@ export default function Login() {
                     className='w-full mb-3 p-3 rounded bg-gray-800 text-white'
                     value={email}
                     onChange={e => setEmail(e.target.value)}
+                    required
                 />
 
                 <input 
@@ -34,13 +44,21 @@ export default function Login() {
                     className='w-full mb-4 p-3 rounded bg-gray-800 text-white'
                     value={password}
                     onChange={e => setPassword(e.target.value)}
+                    required
                 />
+
+                {error && (
+                    <p className='text-red-500 text-sm mb-3'>
+                        {error}
+                    </p>
+                )}
 
                 <button
                     type='submit'
+                    disabled={loading}
                     className='w-full bg-indigo-600 hover:bg-indigo-700 transition p-3 rounded font-semibold'
                 >
-                    Entrar
+                    {loading ? 'Entrando...' : 'Entrar'}
                 </button>
             </form>
         </div>
