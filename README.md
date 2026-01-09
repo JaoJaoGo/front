@@ -24,3 +24,13 @@ Bibliotecas instaladas:
 
 Bibliotecas de animação:
 - framer-motion
+
+## HTTPS local (Vite)
+
+Este projeto usa HTTPS local para compatibilidade com Laravel Sanctum (SPA).
+
+### Setup
+
+```bash
+mkcert -install
+mkcert localhost

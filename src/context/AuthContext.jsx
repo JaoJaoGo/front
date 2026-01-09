@@ -1,16 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { setAuthToken } from '../services/api';
 import { loginRequest, logoutRequest, meRequest } from '../services/authService';
 
 /**
- * Contexto responsável por armazenar e gerenciar
- * o estado global de autenticação da aplicação.
- *
- * Centraliza:
- * - Sessão do usuário
- * - Token de autenticação
- * - Estado de carregamento inicial (bootstrap)
- * - Funções de login e logout
+ * Contexto responsável por gerenciar
+ * a autenticação via Sanctum (SPA).
  */
 const AuthContext = createContext(null);
 
@@ -60,21 +53,11 @@ export function AuthProvider({ children }) {
      * @returns {Promise<void>}
      */
     async function bootstrapAuth() {
-        const token = localStorage.getItem('auth_token');
-        const tokenType = localStorage.getItem('auth_token_type') || 'Bearer';
-
-        if (!token) {
-            setLoading(false);
-            return;
-        }
-
         try {
-            setAuthToken(token, tokenType);
-
             const user = await meRequest();
             setUser(user);
         } catch {
-            clearSession();
+            setUser(null);
         } finally {
             setLoading(false);
         }
@@ -95,14 +78,8 @@ export function AuthProvider({ children }) {
      * @returns {Promise<Object>} Usuário autenticado
      */
     async function login({ email, password }) {
-        const { user, token, token_type } = await loginRequest({ email, password });
-
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('auth_token_type', token_type);
-
-        setAuthToken(token, token_type);
+        const { user } = await loginRequest({ email, password });
         setUser(user);
-
         return user;
     }
 
@@ -119,21 +96,8 @@ export function AuthProvider({ children }) {
         try {
             await logoutRequest();
         } finally {
-            clearSession();
+            setUser(null);
         }
-    }
-
-    /**
-     * Limpa completamente a sessão de autenticação.
-     *
-     * Remove tokens persistidos, headers de autenticação
-     * e dados do usuário no estado global.
-     */
-    function clearSession() {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_token_type');
-        setAuthToken(null);
-        setUser(null);
     }
 
     return (

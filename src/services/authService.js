@@ -1,4 +1,4 @@
-import api from './api';
+import api, {ensureCsrfCookie} from './api';
 
 /**
  * Realiza a requisição de login do usuário.
@@ -8,8 +8,6 @@ import api from './api';
  *
  * Resposta esperada:
  * - user: dados do usuário autenticado
- * - token: token de acesso
- * - token_type: tipo do token (ex: Bearer)
  *
  * @param {Object} params
  * @param {string} params.email E-mail do usuário
@@ -18,6 +16,8 @@ import api from './api';
  * @returns {Promise<Object>} Dados de autenticação retornados pela API
  */
 export async function loginRequest({ email, password }) {
+    await ensureCsrfCookie();
+    
     const response = await api.post('/login', {
         email,
         password,

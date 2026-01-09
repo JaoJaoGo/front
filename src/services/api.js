@@ -12,6 +12,7 @@ import axios from 'axios';
  */
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
+    withCredentials: true, // essencial para Sanctum SPA
     headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -19,26 +20,29 @@ const api = axios.create({
 });
 
 /**
- * Define ou remove o token de autenticação nos headers padrão do Axios.
- * 
- * Quando definido, o token será enviado automaticamente
- * em todas as requisições subsequentes através do header:
- * 
- * Authorization: {tokenType} {token}
- * 
- * Geralmente utilizado após login e removido no logout.
- * 
- * @param {string|null} token Token de autenticação (ex: JWT ou Sanctum)
- * @param {string} [tokenType='Bearer'] Tipo do token utilizado no header Authorization
- * 
- * @returns {void}
+ * Garante que o cookie CSRF do Sanctum seja carregado
+ * antes de qualquer requisição protegida.
+ *
+ * Deve ser chamado:
+ * - antes do login
+ * - antes da primeira requisição autenticada
  */
-export function setAuthToken(token, tokenType = 'Bearer') {
-    if (token) {
-        api.defaults.headers.common.Authorization = `${tokenType} ${token}`;
-    } else {
-        delete api.defaults.headers.common.Authorization;
-    }
+export async function ensureCsrfCookie() {
+    await api.get('/sanctum/csrf-cookie');
 }
+
+/**
+ * Interceptor para garantir CSRF automaticamente
+ * em requisições mutáveis.
+ */
+api.interceptors.request.use(async (config) => {
+    const method = config.method?.toLowerCase();
+
+    if (['post', 'put', 'patch', 'delete'].includes(method)) {
+        await ensureCsrfCookie();
+    }
+
+    return config;
+});
 
 export default api;
